@@ -1,7 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using PhanMemQuanLyCafe.Api.Data;
 using PhanMemQuanLyCafe.Api.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace PhanMemQuanLyCafe.Api.Controllers
 {
@@ -10,7 +14,13 @@ namespace PhanMemQuanLyCafe.Api.Controllers
     public class AccountsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        public AccountsController(ApplicationDbContext context) => _context = context;
+        private readonly IConfiguration _config;
+
+        public AccountsController(ApplicationDbContext context, IConfiguration config)
+        {
+            _context = context;
+            _config = config;
+        }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Account>>> GetAccounts()
@@ -24,9 +34,9 @@ namespace PhanMemQuanLyCafe.Api.Controllers
             return account;
         }
 
-        // POST: api/accounts/login
+        // POST: api/accounts/login  -> Trả về JWT token để gọi các API có [Authorize]
         [HttpPost("login")]
-        public async Task<ActionResult<Account>> Login([FromBody] LoginRequest request)
+        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
         {
             string hashedPassword = ComputeMd5Hash(request.PassWord);
 
@@ -34,7 +44,39 @@ namespace PhanMemQuanLyCafe.Api.Controllers
                 .FirstOrDefaultAsync(a => a.UserName == request.UserName && a.PassWord == hashedPassword);
 
             if (account == null) return Unauthorized("Sai tài khoản hoặc mật khẩu");
-            return account;
+
+            string role = account.Type == 1 ? "Admin" : "NhanVien";
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Name, account.UserName),
+                new Claim(ClaimTypes.Role, role),
+                new Claim("DisplayName", account.DisplayName)
+            };
+
+            var jwtKey = _config["Jwt:Key"] ?? "SuperSecretKeyForCafeManagementSystem2026";
+            var jwtIssuer = _config["Jwt:Issuer"] ?? "PhanMemQuanLyCafe.Api";
+            var jwtAudience = _config["Jwt:Audience"] ?? "PhanMemQuanLyCafe.Client";
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: jwtIssuer,
+                audience: jwtAudience,
+                claims: claims,
+                expires: DateTime.Now.AddHours(8),
+                signingCredentials: creds
+            );
+
+            return new LoginResponse
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                UserName = account.UserName,
+                DisplayName = account.DisplayName,
+                Type = account.Type,
+                Role = role
+            };
         }
 
         // POST: api/accounts   (Tạo tài khoản mới - password được hash trước khi lưu)
@@ -110,6 +152,15 @@ namespace PhanMemQuanLyCafe.Api.Controllers
     {
         public string UserName { get; set; } = null!;
         public string PassWord { get; set; } = null!;
+    }
+
+    public class LoginResponse
+    {
+        public string Token { get; set; } = null!;
+        public string UserName { get; set; } = null!;
+        public string DisplayName { get; set; } = null!;
+        public int Type { get; set; }
+        public string Role { get; set; } = null!;
     }
 
     public class UpdateAccountRequest
