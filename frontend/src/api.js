@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://localhost:7196/api',
+  baseURL: 'http://localhost:5142/api',
 })
 
 // Interceptor: tự động gắn "Authorization: Bearer <token>" nếu đã đăng nhập
