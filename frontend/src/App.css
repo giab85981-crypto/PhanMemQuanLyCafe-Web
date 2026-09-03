@@ -7,10 +7,27 @@ body {
   font-family: 'Segoe UI', Arial, sans-serif;
 }
 
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  align-items: flex-start;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+}
+
 .page {
   padding: 32px;
   max-width: 1000px;
   margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 20px;
+  }
 }
 
 .page h1 {
