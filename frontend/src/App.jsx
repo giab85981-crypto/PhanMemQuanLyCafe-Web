@@ -9,7 +9,7 @@ import Tables from './pages/Tables'
 import Bills from './pages/Bills'
 import Login from './pages/Login'
 import './App.css'
-
+import TableDetail from './pages/TableDetail'
 function App() {
   return (
     <BrowserRouter>
@@ -31,6 +31,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+  path="/tables/:id"
+  element={
+    <ProtectedRoute>
+      <TableDetail />
+    </ProtectedRoute>
+  }
+/>
             </Routes>
           </main>
         </div>

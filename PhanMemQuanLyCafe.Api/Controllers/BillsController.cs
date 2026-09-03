@@ -33,19 +33,17 @@ namespace PhanMemQuanLyCafe.Api.Controllers
             return Ok(bills);
         }
 
-        // GET: api/bills/active-table/5 (Lấy hóa đơn CHƯA thanh toán của 1 bàn)
-        [HttpGet("active-table/{tableId}")]
-        public async Task<ActionResult<BillDto>> GetActiveBillByTable(int tableId)
+        // GET: api/bills/active-by-table/5  (lấy hóa đơn đang mở của bàn 5, nếu có)
+        [HttpGet("active-by-table/{tableId}")]
+        public async Task<ActionResult<Bill>> GetActiveBillByTable(int tableId)
         {
             var bill = await _context.Bills
-                .Include(b => b.IdTableNavigation)
                 .Include(b => b.BillInfos)
                 .ThenInclude(bi => bi.IdFoodNavigation)
                 .FirstOrDefaultAsync(b => b.IdTable == tableId && b.Status == 0);
 
-            if (bill == null) return NotFound("Bàn này hiện tại không có hóa đơn chưa thanh toán");
-
-            return Ok(MapToBillDto(bill));
+            if (bill == null) return NotFound();
+            return bill;
         }
 
         // GET: api/bills/5 (Xem chi tiết 1 hóa đơn cụ thể)
@@ -62,6 +60,8 @@ namespace PhanMemQuanLyCafe.Api.Controllers
 
             return Ok(MapToBillDto(bill));
         }
+
+
 
         // POST: api/bills/add-food (Thêm món vào bàn - Tự động tạo Bill nếu chưa có)
         [HttpPost("add-food")]

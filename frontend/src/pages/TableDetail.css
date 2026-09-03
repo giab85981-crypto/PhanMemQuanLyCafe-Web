@@ -1,0 +1,182 @@
+.table-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background: #444;
+  color: #fff;
+  cursor: pointer;
+}
+
+.status-badge {
+  font-size: 14px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+.status-badge.empty { background: #2e7d32; }
+.status-badge.occupied { background: #c62828; }
+
+.empty-table-panel {
+  text-align: center;
+  padding: 60px 0;
+}
+
+.checkin-btn {
+  margin-top: 16px;
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #6f4e37;
+  color: #fff;
+  cursor: pointer;
+}
+
+.error-msg {
+  color: #ff6b6b;
+  margin-bottom: 12px;
+}
+
+/* Layout POS: 2 cột */
+.pos-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.pos-foods {
+  flex: 2;
+}
+
+.category-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.category-tabs button {
+  padding: 8px 14px;
+  border: 1px solid #555;
+  border-radius: 20px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+.category-tabs button.active {
+  background: #d4a656;
+  color: #1a1a1a;
+  border-color: #d4a656;
+  font-weight: 600;
+}
+
+.food-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.food-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px;
+  border: none;
+  border-radius: 10px;
+  background: #2a2a2a;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.food-btn:active {
+  transform: scale(0.95);
+  background: #d4a656;
+  color: #1a1a1a;
+}
+.food-name { font-weight: 600; text-align: center; }
+.food-price { font-size: 13px; opacity: 0.8; }
+
+/* Cột hóa đơn bên phải */
+.pos-order {
+  flex: 1;
+  min-width: 300px;
+  background: #1e1e1e;
+  border-radius: 10px;
+  padding: 16px;
+  position: sticky;
+  top: 16px;
+}
+
+.order-items {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.empty-order {
+  opacity: 0.6;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.order-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #333;
+}
+
+.remove-btn {
+  border: none;
+  background: transparent;
+  color: #ff6b6b;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.order-summary {
+  border-top: 1px solid #444;
+  padding-top: 12px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.summary-row input {
+  width: 70px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #111;
+  color: #fff;
+}
+
+.checkout-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #2e7d32;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.checkout-btn:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
