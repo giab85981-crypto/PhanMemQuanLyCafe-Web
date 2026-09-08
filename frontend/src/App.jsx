@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Sidebar from './components/Sidebar'
@@ -13,6 +13,64 @@ import TableDetail from './pages/TableDetail'
 import ChangePassword from './pages/ChangePassword'
 import Profile from './pages/Profile'
 import Accounts from './pages/Accounts'
+
+// Bọc quanh <Routes>: mỗi lần đổi URL, key đổi theo -> React remount
+// -> animation "page-enter" trong App.css tự chạy lại từ đầu.
+function AnimatedRoutes() {
+  const location = useLocation()
+  return (
+    <div className="page-enter" key={location.pathname}>
+      <Routes location={location}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/foods" element={<Foods />} />
+        <Route path="/categories" element={<Categories />} />
+        <Route path="/tables" element={<Tables />} />
+        <Route
+          path="/bills"
+          element={
+            <ProtectedRoute>
+              <Bills />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute>
+              <ChangePassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tables/:id"
+          element={
+            <ProtectedRoute>
+              <TableDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/accounts"
+          element={
+            <ProtectedRoute requiredRole="Admin">
+              <Accounts />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </div>
+  )
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -20,54 +78,7 @@ function App() {
         <div className="app-layout">
           <Sidebar />
           <main className="main-content">
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Home />} />
-              <Route path="/foods" element={<Foods />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/tables" element={<Tables />} />
-              <Route
-                path="/bills"
-                element={
-                  <ProtectedRoute>
-                    <Bills />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-  path="/change-password"
-  element={
-    <ProtectedRoute>
-      <ChangePassword />
-    </ProtectedRoute>
-  }
-/>
-              <Route
-  path="/tables/:id"
-  element={
-    <ProtectedRoute>
-      <TableDetail />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/profile"
-  element={
-    <ProtectedRoute>
-      <Profile />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/accounts"
-  element={
-    <ProtectedRoute requiredRole="Admin">
-      <Accounts />
-    </ProtectedRoute>
-  }
-/>
-            </Routes>
+            <AnimatedRoutes />
           </main>
         </div>
       </AuthProvider>
