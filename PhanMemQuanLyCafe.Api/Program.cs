@@ -16,12 +16,12 @@ namespace PhanMemQuanLyCafe.Api
             builder.Services.AddDbContext<PhanMemQuanLyCafe.Api.Data.ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            // 2. Cấu hình CORS (Cho phép React Vite - localhost:5173 gọi API)
+            // 2. Cấu hình CORS - Cho phép tất cả Domain, Port, Method và Header
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowReactApp", policy =>
+                options.AddPolicy("AllowAll", policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173")
+                    policy.AllowAnyOrigin()
                           .AllowAnyHeader()
                           .AllowAnyMethod();
                 });
@@ -60,7 +60,7 @@ namespace PhanMemQuanLyCafe.Api
 
             builder.Services.AddEndpointsApiExplorer();
 
-            // 5. Cấu hình Swagger để hỗ trợ ô nhập Token (Nút Authorize)
+            // 5. Cấu hình Swagger
             builder.Services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "PhanMemQuanLyCafe.Api", Version = "v1" });
@@ -99,13 +99,14 @@ namespace PhanMemQuanLyCafe.Api
                 app.UseSwaggerUI();
             }
 
+            // 6. THỨ TỰ MIDDLEWARE (RẤT QUAN TRỌNG)
+            // Kích hoạt CORS đầu tiên để tránh bị UseHttpsRedirection làm gián đoạn request Preflight
+            app.UseCors("AllowAll");
+
             app.UseHttpsRedirection();
 
-            // 6. Thứ tự Middleware quan trọng: CORS -> Authentication -> Authorization
-            app.UseCors("AllowReactApp");
-
-            app.UseAuthentication(); // Bổ sung Middleware Xác thực người dùng
-            app.UseAuthorization();  // Middleware Phân quyền
+            app.UseAuthentication(); 
+            app.UseAuthorization();  
 
             app.MapControllers();
 
