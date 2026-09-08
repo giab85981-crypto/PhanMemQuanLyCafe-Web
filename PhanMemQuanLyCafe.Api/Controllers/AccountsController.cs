@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PhanMemQuanLyCafe.Api.Data;
@@ -22,11 +23,15 @@ namespace PhanMemQuanLyCafe.Api.Controllers
             _config = config;
         }
 
+        // Danh sách tài khoản - chỉ Admin xem được (dùng cho trang Quản lý tài khoản)
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<Account>>> GetAccounts()
             => await _context.Accounts.ToListAsync();
 
+        // Ai đăng nhập rồi cũng xem được thông tin CHÍNH MÌNH (dùng cho trang Profile)
         [HttpGet("{userName}")]
+        [Authorize]
         public async Task<ActionResult<Account>> GetAccount(string userName)
         {
             var account = await _context.Accounts.FindAsync(userName);
@@ -34,7 +39,7 @@ namespace PhanMemQuanLyCafe.Api.Controllers
             return account;
         }
 
-        // POST: api/accounts/login  -> Trả về JWT token để gọi các API có [Authorize]
+        // Đăng nhập - KHÔNG yêu cầu Authorize (đây là nơi lấy token)
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
         {
@@ -79,8 +84,9 @@ namespace PhanMemQuanLyCafe.Api.Controllers
             };
         }
 
-        // POST: api/accounts   (Tạo tài khoản mới - password được hash trước khi lưu)
+        // Tạo tài khoản mới - chỉ Admin được tạo
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Account>> CreateAccount(Account account)
         {
             if (string.IsNullOrWhiteSpace(account.PassWord))
@@ -95,24 +101,37 @@ namespace PhanMemQuanLyCafe.Api.Controllers
             return CreatedAtAction(nameof(GetAccount), new { userName = account.UserName }, account);
         }
 
-        // PUT: api/accounts/{userName}   (Chỉ cập nhật DisplayName/Type, KHÔNG đụng password)
+        // Sửa DisplayName/Type - CHÍNH MÌNH sửa tên hiển thị hoặc ADMIN sửa cho người khác
         [HttpPut("{userName}")]
+        [Authorize]
         public async Task<IActionResult> UpdateAccount(string userName, UpdateAccountRequest request)
         {
+            var currentUser = User.Identity?.Name;
+            var isAdmin = User.IsInRole("Admin");
+
+            // Nhân viên chỉ được sửa chính mình, và không được tự đổi Type (tự nâng quyền)
+            if (!isAdmin)
+            {
+                if (currentUser != userName) return Forbid();
+            }
+
             var account = await _context.Accounts.FindAsync(userName);
             if (account == null) return NotFound();
 
             account.DisplayName = request.DisplayName;
-            account.Type = request.Type;
+            if (isAdmin) account.Type = request.Type; // chỉ Admin mới đổi được quyền
 
             await _context.SaveChangesAsync();
             return NoContent();
         }
 
-        // PUT: api/accounts/{userName}/change-password
+        // Đổi mật khẩu CHÍNH MÌNH - cần đúng mật khẩu cũ
         [HttpPut("{userName}/change-password")]
+        [Authorize]
         public async Task<IActionResult> ChangePassword(string userName, ChangePasswordRequest request)
         {
+            if (User.Identity?.Name != userName) return Forbid();
+
             var account = await _context.Accounts.FindAsync(userName);
             if (account == null) return NotFound();
 
@@ -128,7 +147,24 @@ namespace PhanMemQuanLyCafe.Api.Controllers
             return NoContent();
         }
 
+        // Admin CẤP LẠI mật khẩu cho người khác - KHÔNG cần biết mật khẩu cũ
+        [HttpPut("{userName}/reset-password")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ResetPassword(string userName, ResetPasswordRequest request)
+        {
+            var account = await _context.Accounts.FindAsync(userName);
+            if (account == null) return NotFound();
+
+            if (string.IsNullOrWhiteSpace(request.NewPassword))
+                return BadRequest("Mật khẩu mới không được để trống");
+
+            account.PassWord = ComputeMd5Hash(request.NewPassword);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
         [HttpDelete("{userName}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteAccount(string userName)
         {
             var account = await _context.Accounts.FindAsync(userName);
@@ -172,6 +208,11 @@ namespace PhanMemQuanLyCafe.Api.Controllers
     public class ChangePasswordRequest
     {
         public string OldPassword { get; set; } = null!;
+        public string NewPassword { get; set; } = null!;
+    }
+
+    public class ResetPasswordRequest
+    {
         public string NewPassword { get; set; } = null!;
     }
 }

@@ -122,12 +122,12 @@
 }
 
 .sidebar-user {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px;
-  border-radius: 8px;
-  margin-bottom: 8px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+.sidebar-user:hover {
+  opacity: 0.85;
 }
 
 .user-avatar {

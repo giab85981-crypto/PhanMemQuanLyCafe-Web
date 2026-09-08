@@ -10,6 +10,9 @@ import Bills from './pages/Bills'
 import Login from './pages/Login'
 import './App.css'
 import TableDetail from './pages/TableDetail'
+import ChangePassword from './pages/ChangePassword'
+import Profile from './pages/Profile'
+import Accounts from './pages/Accounts'
 function App() {
   return (
     <BrowserRouter>
@@ -32,10 +35,35 @@ function App() {
                 }
               />
               <Route
+  path="/change-password"
+  element={
+    <ProtectedRoute>
+      <ChangePassword />
+    </ProtectedRoute>
+  }
+/>
+              <Route
   path="/tables/:id"
   element={
     <ProtectedRoute>
       <TableDetail />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/profile"
+  element={
+    <ProtectedRoute>
+      <Profile />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/accounts"
+  element={
+    <ProtectedRoute requiredRole="Admin">
+      <Accounts />
     </ProtectedRoute>
   }
 />

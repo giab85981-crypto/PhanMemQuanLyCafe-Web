@@ -11,6 +11,10 @@ const links = [
   { to: '/bills', label: 'Hóa đơn', icon: '🧾' },
 ]
 
+const adminLinks = [
+  { to: '/accounts', label: 'Quản lý tài khoản', icon: '👥' },
+]
+
 function Sidebar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -28,6 +32,8 @@ function Sidebar() {
   }
 
   const initial = user?.displayName?.charAt(0)?.toUpperCase() || '?'
+  const isAdmin = user?.role === 'Admin'
+  const visibleLinks = isAdmin ? [...links, ...adminLinks] : links
 
   return (
     <>
@@ -59,7 +65,7 @@ function Sidebar() {
         </div>
 
         <nav className="sidebar-nav">
-          {links.map(link => (
+          {visibleLinks.map(link => (
             <NavLink
               key={link.to}
               to={link.to}
@@ -77,13 +83,18 @@ function Sidebar() {
         <div className="sidebar-footer">
           {user ? (
             <>
-              <div className="sidebar-user" title={`${user.displayName} (${user.role})`}>
+              <NavLink
+                to="/profile"
+                className="sidebar-user"
+                title={`${user.displayName} (${user.role}) — Xem thông tin cá nhân`}
+                onClick={closeMobile}
+              >
                 <div className="user-avatar">{initial}</div>
                 <div className="user-details">
                   <span className="user-name">{user.displayName}</span>
                   <span className="user-role">{user.role}</span>
                 </div>
-              </div>
+              </NavLink>
               <button className="sidebar-logout" onClick={handleLogout}>
                 <span className="icon">🚪</span>
                 <span className="link-text">Đăng xuất</span>

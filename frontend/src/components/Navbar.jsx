@@ -21,16 +21,18 @@ function Navbar() {
         <NavLink to="/tables" className="nav-link">Quản lý bàn</NavLink>
         <NavLink to="/bills" className="nav-link">Hóa đơn</NavLink>
       </div>
-      <div className="navbar-user">
-        {user ? (
-          <>
-            <span>{user.displayName} ({user.role})</span>
-            <button onClick={handleLogout}>Đăng xuất</button>
-          </>
-        ) : (
-          <NavLink to="/login" className="nav-link">Đăng nhập</NavLink>
-        )}
-      </div>
+     <div className="navbar-user">
+  {user ? (
+    <>
+      <NavLink to="/change-password" className="nav-link">
+        {user.displayName} ({user.role})
+      </NavLink>
+      <button onClick={handleLogout}>Đăng xuất</button>
+    </>
+  ) : (
+    <NavLink to="/login" className="nav-link">Đăng nhập</NavLink>
+  )}
+</div>
     </nav>
   )
 }

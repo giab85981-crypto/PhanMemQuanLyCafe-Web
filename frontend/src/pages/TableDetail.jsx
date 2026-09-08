@@ -112,8 +112,8 @@ function TableDetail() {
   if (!table) return <p className="page">Không tìm thấy bàn</p>
 
   const visibleFoods = activeCategory
-    ? foods.filter(f => f.idCategory === activeCategory)
-    : foods
+  ? foods.filter(f => f.categoryId === activeCategory)
+  : foods
 
   const items = bill?.items || []
   const subTotal = items.reduce((sum, item) => sum + item.amount, 0)
