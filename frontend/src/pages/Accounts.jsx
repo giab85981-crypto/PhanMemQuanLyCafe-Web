@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../api'
+import './Accounts.css'
 
 const emptyForm = { userName: '', displayName: '', passWord: '', type: 0 }
 
@@ -12,7 +13,6 @@ function Accounts() {
   const [form, setForm] = useState(emptyForm)
   const [submitting, setSubmitting] = useState(false)
 
-  // --- state cho modal "Đặt lại mật khẩu" ---
   const [resetForUser, setResetForUser] = useState(null)
   const [newPassword, setNewPassword] = useState('')
   const [resetSubmitting, setResetSubmitting] = useState(false)
@@ -78,7 +78,6 @@ function Accounts() {
     }
   }
 
-  // --- hàm cho modal "Đặt lại mật khẩu" ---
   function openResetForm(userName) {
     setResetForUser(userName)
     setNewPassword('')
@@ -129,7 +128,11 @@ function Accounts() {
             <tr key={acc.userName}>
               <td>{acc.userName}</td>
               <td>{acc.displayName}</td>
-              <td>{acc.type === 1 ? 'Quản trị viên' : 'Nhân viên'}</td>
+              <td>
+                <span className={`role-badge ${acc.type === 1 ? 'admin' : 'staff'}`}>
+                  {acc.type === 1 ? 'Quản trị viên' : 'Nhân viên'}
+                </span>
+              </td>
               <td>
                 <button className="edit-btn" onClick={() => openEditForm(acc)}>Sửa</button>
                 <button className="reset-btn" onClick={() => openResetForm(acc.userName)}>Đặt lại MK</button>

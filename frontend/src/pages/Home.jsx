@@ -88,7 +88,7 @@ function Home() {
             {getGreeting()}{user?.displayName ? `, ${user.displayName}` : ''} <span className="home-cup">☕</span>
           </h1>
           <p className="home-subtitle">
-            Hệ thống quản lý quán cà phê — theo dõi bàn, món ăn và hóa đơn ngay tại đây.
+            Hệ thống quản lý quán cà phê
           </p>
           {!user && (
             <Link to="/login" className="home-cta">Đăng nhập để bắt đầu →</Link>

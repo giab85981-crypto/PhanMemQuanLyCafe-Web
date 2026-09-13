@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api'
-import './Login.css' // dùng chung style với trang Login cho đồng bộ
+import './ChangePassword.css'
 
 function ChangePassword() {
   const { user } = useAuth()
@@ -51,15 +51,16 @@ function ChangePassword() {
   }
 
   return (
-    <div className="login-page">
-      <form className="login-box" onSubmit={handleSubmit}>
-        <h1>🔒 Đổi mật khẩu</h1>
-        <p style={{ textAlign: 'center', margin: 0, opacity: 0.8 }}>
+    <div className="cp-page">
+      <form className="cp-box" onSubmit={handleSubmit}>
+        <div className="cp-icon">🔒</div>
+        <h1>Đổi mật khẩu</h1>
+        <p className="cp-subtitle">
           Tài khoản: <b>{user?.userName}</b>
         </p>
 
-        <label>
-          Mật khẩu hiện tại
+        <div className="cp-field">
+          <label className="cp-label">Mật khẩu hiện tại</label>
           <input
             type="password"
             value={oldPassword}
@@ -67,39 +68,35 @@ function ChangePassword() {
             required
             autoFocus
           />
-        </label>
+        </div>
 
-        <label>
-          Mật khẩu mới
+        <div className="cp-field">
+          <label className="cp-label">Mật khẩu mới</label>
           <input
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
           />
-        </label>
+        </div>
 
-        <label>
-          Nhập lại mật khẩu mới
+        <div className="cp-field">
+          <label className="cp-label">Nhập lại mật khẩu mới</label>
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
-        </label>
+        </div>
 
-        {error && <p className="login-error">{error}</p>}
-        {success && <p style={{ color: '#4caf50', fontSize: 13, margin: 0 }}>{success}</p>}
+        {error && <p className="cp-error">{error}</p>}
+        {success && <p className="cp-success">{success}</p>}
 
-        <button type="submit" disabled={submitting}>
+        <button type="submit" className="cp-submit" disabled={submitting}>
           {submitting ? 'Đang xử lý...' : 'Đổi mật khẩu'}
         </button>
-        <button
-          type="button"
-          onClick={() => navigate('/')}
-          style={{ background: 'transparent', border: '1px solid #555' }}
-        >
+        <button type="button" className="cp-secondary" onClick={() => navigate('/')}>
           Quay lại trang chủ
         </button>
       </form>

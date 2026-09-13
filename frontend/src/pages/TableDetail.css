@@ -22,7 +22,7 @@
   vertical-align: middle;
 }
 .status-badge.empty { background: #2e7d32; }
-.status-badge.occupied { background: #c62828; }
+.status-badge.occupied { background: #000000; }
 
 .empty-table-panel {
   text-align: center;
@@ -114,6 +114,12 @@
   padding: 16px;
   position: sticky;
   top: 16px;
+}
+
+.pos-order h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+  color: #ffff;
 }
 
 .order-items {
