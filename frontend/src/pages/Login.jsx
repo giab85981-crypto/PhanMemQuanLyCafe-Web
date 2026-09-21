@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api'
 import './Login.css'
+import coffeeBg from '../assets/coffee-bg.jpg'
 
 function Login() {
   const [userName, setUserName] = useState('')
@@ -33,7 +34,7 @@ function Login() {
   }
 
   return (
-    <div className="login-page">
+    <div className="login-page" style={{ backgroundImage: `url(${coffeeBg})` }}>
       <form className="login-box" onSubmit={handleSubmit}>
         <div className="login-logo">☕</div>
         <h1>Đăng nhập</h1>
