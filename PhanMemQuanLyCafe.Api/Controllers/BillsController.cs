@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PhanMemQuanLyCafe.Api.Data;
 using PhanMemQuanLyCafe.Api.Models;
 
 namespace PhanMemQuanLyCafe.Api.Controllers
@@ -203,7 +202,7 @@ namespace PhanMemQuanLyCafe.Api.Controllers
                 DateCheckOut = bill.DateCheckOut,
                 Status = bill.Status,
                 Discount = bill.Discount ?? 0,
-                TotalPrice = bill.TotalPrice,
+                TotalPrice = (double)bill.TotalPrice,
                 Items = bill.BillInfos.Select(bi => new BillItemDto
                 {
                     BillInfoId = bi.Id,

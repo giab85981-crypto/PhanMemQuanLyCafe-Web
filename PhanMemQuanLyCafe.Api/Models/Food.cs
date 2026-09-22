@@ -13,7 +13,13 @@ public partial class Food
 
     public double Price { get; set; }
 
+    public bool IsAvailable { get; set; }
+
     public virtual ICollection<BillInfo> BillInfos { get; set; } = new List<BillInfo>();
 
     public virtual FoodCategory IdCategoryNavigation { get; set; } = null!;
+
+    public virtual ICollection<KitchenOrderDetail> KitchenOrderDetails { get; set; } = new List<KitchenOrderDetail>();
+
+    public virtual ICollection<Recipe> Recipes { get; set; } = new List<Recipe>();
 }

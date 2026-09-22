@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using PhanMemQuanLyCafe.Api.Data;
 using PhanMemQuanLyCafe.Api.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -23,13 +22,13 @@ namespace PhanMemQuanLyCafe.Api.Controllers
             _config = config;
         }
 
-        // Danh sách tài khoản - chỉ Admin xem được (dùng cho trang Quản lý tài khoản)
+        // Danh sách tài khoản - chỉ Admin xem được
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<Account>>> GetAccounts()
             => await _context.Accounts.ToListAsync();
 
-        // Ai đăng nhập rồi cũng xem được thông tin CHÍNH MÌNH (dùng cho trang Profile)
+        // Xem thông tin CHÍNH MÌNH
         [HttpGet("{userName}")]
         [Authorize]
         public async Task<ActionResult<Account>> GetAccount(string userName)
@@ -39,49 +38,76 @@ namespace PhanMemQuanLyCafe.Api.Controllers
             return account;
         }
 
-        // Đăng nhập - KHÔNG yêu cầu Authorize (đây là nơi lấy token)
+        // Đăng nhập - Tạo JWT Token
         [HttpPost("login")]
-        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            string hashedPassword = ComputeMd5Hash(request.PassWord);
-
-            var account = await _context.Accounts
-                .FirstOrDefaultAsync(a => a.UserName == request.UserName && a.PassWord == hashedPassword);
-
-            if (account == null) return Unauthorized("Sai tài khoản hoặc mật khẩu");
-
-            string role = account.Type == 1 ? "Admin" : "NhanVien";
-
-            var claims = new[]
+            try
             {
-                new Claim(ClaimTypes.Name, account.UserName),
-                new Claim(ClaimTypes.Role, role),
-                new Claim("DisplayName", account.DisplayName)
-            };
+                if (request == null || string.IsNullOrEmpty(request.PassWord))
+                    return BadRequest("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu");
 
-            var jwtKey = _config["Jwt:Key"] ?? "SuperSecretKeyForCafeManagementSystem2026";
-            var jwtIssuer = _config["Jwt:Issuer"] ?? "PhanMemQuanLyCafe.Api";
-            var jwtAudience = _config["Jwt:Audience"] ?? "PhanMemQuanLyCafe.Client";
+                string hashedPassword = ComputeMd5Hash(request.PassWord);
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                // 1. Kiểm tra tài khoản
+                var account = await _context.Accounts
+                    .FirstOrDefaultAsync(a => a.UserName == request.UserName && a.PassWord == hashedPassword);
 
-            var token = new JwtSecurityToken(
-                issuer: jwtIssuer,
-                audience: jwtAudience,
-                claims: claims,
-                expires: DateTime.Now.AddHours(8),
-                signingCredentials: creds
-            );
+                if (account == null)
+                    return Unauthorized("Sai tài khoản hoặc mật khẩu");
 
-            return new LoginResponse
+                // 2. Xác định Role an toàn (Không cần gọi _context.Roles để tránh lỗi sai tên DbSet)
+                int currentRoleId = account.IdRole ?? 2;
+                string role = currentRoleId switch
+                {
+                    1 => "Admin",
+                    3 => "Kitchen",
+                    _ => "NhanVien"
+                };
+
+                // 3. Tạo JWT Claims
+                var claims = new[]
+                {
+            new Claim(ClaimTypes.Name, account.UserName),
+            new Claim(ClaimTypes.Role, role),
+            new Claim("DisplayName", account.DisplayName ?? account.UserName)
+        };
+
+                var jwtKey = _config["Jwt:Key"] ?? "SuperSecretKeyForCafeManagementSystem2026";
+                var jwtIssuer = _config["Jwt:Issuer"] ?? "PhanMemQuanLyCafe.Api";
+                var jwtAudience = _config["Jwt:Audience"] ?? "PhanMemQuanLyCafe.Client";
+
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+                var token = new JwtSecurityToken(
+                    issuer: jwtIssuer,
+                    audience: jwtAudience,
+                    claims: claims,
+                    expires: DateTime.Now.AddHours(8),
+                    signingCredentials: creds
+                );
+
+                // 4. Trả về kết quả thành công (200 OK)
+                return Ok(new LoginResponse
+                {
+                    Token = new JwtSecurityTokenHandler().WriteToken(token),
+                    UserName = account.UserName,
+                    DisplayName = account.DisplayName ?? account.UserName,
+                    IdRole = currentRoleId,
+                    Type = currentRoleId, // Giữ tương thích Frontend cũ
+                    Role = role
+                });
+            }
+            catch (Exception ex)
             {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                UserName = account.UserName,
-                DisplayName = account.DisplayName,
-                Type = account.Type,
-                Role = role
-            };
+                // Trả trực tiếp thông báo lỗi về Browser thay vì báo lỗi 500 chung chung
+                return StatusCode(500, new
+                {
+                    message = ex.Message,
+                    innerError = ex.InnerException?.Message
+                });
+            }
         }
 
         // Tạo tài khoản mới - chỉ Admin được tạo
@@ -96,12 +122,16 @@ namespace PhanMemQuanLyCafe.Api.Controllers
             if (exists) return Conflict("Tên đăng nhập đã tồn tại");
 
             account.PassWord = ComputeMd5Hash(account.PassWord);
+
+            // Nếu không truyền IdRole thì mặc định là 2 (Nhân viên)
+            if (account.IdRole <= 0) account.IdRole = 2;
+
             _context.Accounts.Add(account);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetAccount), new { userName = account.UserName }, account);
         }
 
-        // Sửa DisplayName/Type - CHÍNH MÌNH sửa tên hiển thị hoặc ADMIN sửa cho người khác
+        // Sửa DisplayName / IdRole
         [HttpPut("{userName}")]
         [Authorize]
         public async Task<IActionResult> UpdateAccount(string userName, UpdateAccountRequest request)
@@ -109,23 +139,28 @@ namespace PhanMemQuanLyCafe.Api.Controllers
             var currentUser = User.Identity?.Name;
             var isAdmin = User.IsInRole("Admin");
 
-            // Nhân viên chỉ được sửa chính mình, và không được tự đổi Type (tự nâng quyền)
-            if (!isAdmin)
+            if (!isAdmin && currentUser != userName)
             {
-                if (currentUser != userName) return Forbid();
+                return Forbid();
             }
 
             var account = await _context.Accounts.FindAsync(userName);
             if (account == null) return NotFound();
 
             account.DisplayName = request.DisplayName;
-            if (isAdmin) account.Type = request.Type; // chỉ Admin mới đổi được quyền
+
+            // Chỉ Admin mới được thay đổi IdRole
+            if (isAdmin)
+            {
+                int newRole = request.IdRole > 0 ? request.IdRole : request.Type;
+                if (newRole > 0) account.IdRole = newRole;
+            }
 
             await _context.SaveChangesAsync();
             return NoContent();
         }
 
-        // Đổi mật khẩu CHÍNH MÌNH - cần đúng mật khẩu cũ
+        // Đổi mật khẩu CHÍNH MÌNH
         [HttpPut("{userName}/change-password")]
         [Authorize]
         public async Task<IActionResult> ChangePassword(string userName, ChangePasswordRequest request)
@@ -147,7 +182,7 @@ namespace PhanMemQuanLyCafe.Api.Controllers
             return NoContent();
         }
 
-        // Admin CẤP LẠI mật khẩu cho người khác - KHÔNG cần biết mật khẩu cũ
+        // Admin Reset mật khẩu
         [HttpPut("{userName}/reset-password")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ResetPassword(string userName, ResetPasswordRequest request)
@@ -163,6 +198,7 @@ namespace PhanMemQuanLyCafe.Api.Controllers
             return NoContent();
         }
 
+        // Xóa tài khoản
         [HttpDelete("{userName}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteAccount(string userName)
@@ -195,13 +231,15 @@ namespace PhanMemQuanLyCafe.Api.Controllers
         public string Token { get; set; } = null!;
         public string UserName { get; set; } = null!;
         public string DisplayName { get; set; } = null!;
-        public int Type { get; set; }
+        public int IdRole { get; set; }
+        public int Type { get; set; } // Giữ lại Type cho Frontend cũ tương thích
         public string Role { get; set; } = null!;
     }
 
     public class UpdateAccountRequest
     {
         public string DisplayName { get; set; } = null!;
+        public int IdRole { get; set; }
         public int Type { get; set; }
     }
 

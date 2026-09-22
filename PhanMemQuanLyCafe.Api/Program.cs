@@ -1,8 +1,9 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using PhanMemQuanLyCafe.Api.Models;
+using System.Text;
 
 namespace PhanMemQuanLyCafe.Api
 {
@@ -13,8 +14,8 @@ namespace PhanMemQuanLyCafe.Api
             var builder = WebApplication.CreateBuilder(args);
 
             // 1. Cấu hình Database
-            builder.Services.AddDbContext<PhanMemQuanLyCafe.Api.Data.ApplicationDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // 2. Cấu hình CORS - Cho phép tất cả Domain, Port, Method và Header
             builder.Services.AddCors(options =>

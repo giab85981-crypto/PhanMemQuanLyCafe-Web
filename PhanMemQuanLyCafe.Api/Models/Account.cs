@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PhanMemQuanLyCafe.Api.Models;
+﻿namespace PhanMemQuanLyCafe.Api.Models;
 
 public partial class Account
 {
@@ -11,5 +8,10 @@ public partial class Account
 
     public string PassWord { get; set; } = null!;
 
-    public int Type { get; set; }
+    public int? IdRole { get; set; }
+
+    public virtual Role? IdRoleNavigation { get; set; }
+
+    public virtual ICollection<ImportReceipt> ImportReceipts { get; set; } = new List<ImportReceipt>();
+    //public int Type { get; internal set; }
 }
