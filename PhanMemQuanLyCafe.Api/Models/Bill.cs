@@ -1,4 +1,7 @@
-﻿namespace PhanMemQuanLyCafe.Api.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace PhanMemQuanLyCafe.Api.Models;
 
 public partial class Bill
 {

@@ -1,21 +1,32 @@
-/* Sửa layout tổng thể tràn viền màn hình */
+/* Layout tổng thể dạng cột (Header ở trên, Content ở dưới) */
 .app-layout {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   width: 100%;
   background-color: #f1f5f9;
 }
 
-/* Sidebar không bị co rúm */
-.app-layout > sidebar, 
-.app-layout > div:first-child {
-  flex-shrink: 0;
-}
-
-/* Phần nội dung chính tự động giãn hết phần trống còn lại */
+/* Phần nội dung chính tự động tràn full chiều rộng */
 .main-content {
   flex: 1;
+  width: 100%;
   min-width: 0;
-  overflow-y: auto;
   background-color: #f1f5f9;
+}
+
+/* Page animation chuyển trang mượt mà */
+.page-enter {
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -37,6 +37,8 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<KitchenOrderDetail> KitchenOrderDetails { get; set; }
 
+    public virtual DbSet<Permission> Permissions { get; set; }
+
     public virtual DbSet<Recipe> Recipes { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
@@ -67,6 +69,7 @@ public partial class ApplicationDbContext : DbContext
 
             entity.HasOne(d => d.IdRoleNavigation).WithMany(p => p.Accounts)
                 .HasForeignKey(d => d.IdRole)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_Account_Role");
         });
 
@@ -302,6 +305,24 @@ public partial class ApplicationDbContext : DbContext
                 .HasConstraintName("FK_KOD_KitchenOrder");
         });
 
+        modelBuilder.Entity<Permission>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Permissi__3213E83FEA61139F");
+
+            entity.ToTable("Permission");
+
+            entity.HasIndex(e => e.Code, "UQ__Permissi__357D4CF97C33450E").IsUnique();
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("code");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .HasColumnName("name");
+        });
+
         modelBuilder.Entity<Recipe>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Recipe__3213E83F200682D4");
@@ -326,14 +347,36 @@ public partial class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Role__3213E83FC8EE7ADB");
+            entity.HasKey(e => e.Id).HasName("PK__Role__3213E83F22F30C42");
 
             entity.ToTable("Role");
 
+            entity.HasIndex(e => e.Name, "UQ__Role__72E12F1B9E3B07FB").IsUnique();
+
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Description)
+                .HasMaxLength(200)
+                .HasColumnName("description");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasColumnName("name");
+
+            entity.HasMany(d => d.IdPermissions).WithMany(p => p.IdRoles)
+                .UsingEntity<Dictionary<string, object>>(
+                    "RolePermission",
+                    r => r.HasOne<Permission>().WithMany()
+                        .HasForeignKey("IdPermission")
+                        .HasConstraintName("FK_RP_Permission"),
+                    l => l.HasOne<Role>().WithMany()
+                        .HasForeignKey("IdRole")
+                        .HasConstraintName("FK_RP_Role"),
+                    j =>
+                    {
+                        j.HasKey("IdRole", "IdPermission").HasName("PK__RolePerm__EF0CEC3CD997E6C0");
+                        j.ToTable("RolePermission");
+                        j.IndexerProperty<int>("IdRole").HasColumnName("idRole");
+                        j.IndexerProperty<int>("IdPermission").HasColumnName("idPermission");
+                    });
         });
 
         modelBuilder.Entity<Supplier>(entity =>

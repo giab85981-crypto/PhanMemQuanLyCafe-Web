@@ -1,4 +1,7 @@
-﻿namespace PhanMemQuanLyCafe.Api.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace PhanMemQuanLyCafe.Api.Models;
 
 public partial class Account
 {
@@ -13,5 +16,4 @@ public partial class Account
     public virtual Role? IdRoleNavigation { get; set; }
 
     public virtual ICollection<ImportReceipt> ImportReceipts { get; set; } = new List<ImportReceipt>();
-    //public int Type { get; internal set; }
 }
